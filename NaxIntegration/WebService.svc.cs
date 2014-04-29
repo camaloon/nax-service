@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using ServiceStack.Text;
+
 using a3ERPActiveX;
 
 namespace NaxIntegration
@@ -27,61 +29,61 @@ namespace NaxIntegration
         NaxServicesContainer naxContainer = new NaxServicesContainer();
 
         [OperationContract]
-        public string TestVariosQuery()
+        public string execute(string className, string methodName, string jsonArguments = "[]")
         {
-            dynamic naxVarios = naxContainer.GetInstance("Varios");
-
-            var result = naxVarios.CuentaArtV("1", "1");
-            naxContainer.ThrowExceptionIfError(1);
-
-            return result.ToString();
+            object[] arguments = jsonArguments.FromJson<object[]>();
+            dynamic naxObject = naxContainer.GetInstance(className);
+            var result = naxObject.GetType().InvokeMember(methodName, BindingFlags.InvokeMethod, null, naxObject, arguments);
+            naxContainer.ThrowExceptionIfError(0);
+            return result == null ? null : JsonSerializer.SerializeToString(result);
         }
 
         [OperationContract]
-        public decimal NewFactura()
+        public void assign(string className, string attributeName, string jsonValue)
         {
-            dynamic naxFactura = naxContainer.GetInstance("Factura");
-            
-            naxFactura.Iniciar();
-            naxContainer.ThrowExceptionIfError(1);
+            baseAssign(className, attributeName, jsonValue.FromJson<object>());
+        }
 
-            naxFactura.Nuevo(
-                "30/03/2014",   // Fecha de la factura
-                "1",            // Código del cliente
-                false,          // Indica que es de venta (True indicaría que es de compra)
-                false,          // Indica que es de gestión (True indicaría que es contable)
-                true,           // Indica que se desean las repercusiones contables
-                true            // Indica que se desean los vencimientos
-            );
-            naxContainer.ThrowExceptionIfError(2);
+        [OperationContract]
+        public void collectionAssign(string className, string attributeName, string arrayKey, string jsonValue)
+        {
+            baseAssign(className, attributeName, new object[] {arrayKey, jsonValue.FromJson<object>()});
+        }
 
-            naxFactura.NuevaLineaArt("1", 3D);
-            naxFactura.AsFloatLin["PrcMoneda"] = 1500F;
-            naxFactura.AnadirLinea();
-            naxContainer.ThrowExceptionIfError(3);
+        protected void baseAssign(string className, string attributeName, dynamic value)
+        {
+            dynamic naxObject = naxContainer.GetInstance(className);
+            naxObject.GetType().InvokeMember(attributeName, BindingFlags.SetProperty, null, naxObject, value);
+            naxContainer.ThrowExceptionIfError(0);
+        }
 
-            decimal numFactura = naxFactura.Anade();
-            naxContainer.ThrowExceptionIfError(4);
-            
-            naxFactura.Acabar();
-            naxContainer.ThrowExceptionIfError(5);
-            
-            return numFactura;
+        [OperationContract]
+        public string TestVariosQuery()
+        {
+            return execute("Varios", "CuentaArtV", "[\"1\", \"1\"]");
+        }
+
+        [OperationContract]
+        public string TestNewFactura()
+        {
+            execute("Factura", "Iniciar");
+            execute("Factura", "Nuevo", "[\"02/04/2014\", \"1\", false, false, true, true]");
+            execute("Factura", "NuevaLineaArt", "[\"1\", 3]");
+            collectionAssign("Factura", "AsFloatLin", "PrcMoneda", "10");
+            execute("Factura", "AnadirLinea");
+            string numFacturaJson = execute("Factura", "Anade");
+            execute("Factura", "Acabar");
+            return numFacturaJson;
         }
 
         [OperationContract]
         public void TestCrearCliente()
         {
-            dynamic naxMaestro = naxContainer.GetInstance("Maestro");
-
-            naxMaestro.Iniciar("Clientes");
-            naxMaestro.Nuevo();
-            naxContainer.ThrowExceptionIfError(1);
-            naxMaestro.AsInteger["codcli"] = 25;
-            naxMaestro.AsString["nomcli"] = "test cliente";
-            naxContainer.ThrowExceptionIfError(2);
-            naxMaestro.Guarda(false);
-            naxContainer.ThrowExceptionIfError(3);
+            execute("Maestro", "Iniciar", "[\"Clientes\"]");
+            execute("Maestro", "Nuevo");
+            collectionAssign("Maestro", "AsInteger", "codcli", "27");
+            collectionAssign("Maestro", "AsString", "nomcli", "test cliente 2");
+            execute("Maestro", "Guarda", "[false]");
         }
 
     }
