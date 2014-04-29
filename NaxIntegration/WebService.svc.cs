@@ -29,7 +29,8 @@ namespace NaxIntegration
         [OperationContract]
         public string TestVariosQuery()
         {
-            dynamic naxVarios = naxContainer.GetInstance<Varios>();
+            dynamic naxVarios = naxContainer.GetInstance("Varios");
+
             var result = naxVarios.CuentaArtV("1", "1");
             naxContainer.ThrowExceptionIfError(1);
 
@@ -39,7 +40,7 @@ namespace NaxIntegration
         [OperationContract]
         public decimal NewFactura()
         {
-            dynamic naxFactura = naxContainer.GetInstance<Factura>();
+            dynamic naxFactura = naxContainer.GetInstance("Factura");
             
             naxFactura.Iniciar();
             naxContainer.ThrowExceptionIfError(1);
@@ -71,7 +72,7 @@ namespace NaxIntegration
         [OperationContract]
         public void TestCrearCliente()
         {
-            dynamic naxMaestro = naxContainer.GetInstance<Maestro>();
+            dynamic naxMaestro = naxContainer.GetInstance("Maestro");
 
             naxMaestro.Iniciar("Clientes");
             naxMaestro.Nuevo();
