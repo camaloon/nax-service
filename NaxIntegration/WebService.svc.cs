@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.ServiceModel.Web;
-using System.Text;
-using System.Diagnostics;
-
+﻿using System.ServiceModel;
+using System.Configuration;
 using System.Reflection;
-using System.Runtime.InteropServices;
-
 using ServiceStack.Text;
-
-using a3ERPActiveX;
 
 namespace NaxIntegration
 {
@@ -26,36 +15,42 @@ namespace NaxIntegration
     )]
     public class WebService
     {
-        NaxServicesContainer naxContainer = new NaxServicesContainer();
+        NaxServicesContainer naxContainer = new NaxServicesContainer(ConfigurationManager.AppSettings.Get("WebService:dbName"));
+        Logger logger = new Logger();
 
         [OperationContract]
         public string execute(string className, string methodName, string jsonArguments = "[]")
         {
+            logger.Log(string.Format("CALL TO: execute(className: {0}, methodName: {1}, jsonArguments: {2})", className, methodName, jsonArguments));
             object[] arguments = jsonArguments.FromJson<object[]>();
             dynamic naxObject = naxContainer.GetInstance(className);
             var result = naxObject.GetType().InvokeMember(methodName, BindingFlags.InvokeMethod, null, naxObject, arguments);
-            naxContainer.ThrowExceptionIfError(0);
+            naxContainer.ThrowExceptionIfError();
             return result == null ? null : JsonSerializer.SerializeToString(result);
         }
 
         [OperationContract]
         public void assign(string className, string attributeName, string jsonValue)
         {
-            baseAssign(className, attributeName, jsonValue.FromJson<object>());
+            logger.Log(string.Format("CALL TO: assign(className: {0}, attributeName: {1}, jsonValue: {2})", className, attributeName, jsonValue));
+            BaseAssign(className, attributeName, jsonValue.FromJson<object>());
         }
 
         [OperationContract]
-        public void collectionAssign(string className, string attributeName, string arrayKey, string jsonValue)
+        public void collectionAssign(string className, string attributeName, string key, string jsonValue)
         {
-            baseAssign(className, attributeName, new object[] {arrayKey, jsonValue.FromJson<object>()});
+            logger.Log(string.Format("CALL TO: assign(className: {0}, attributeName: {1}, key: {2}, jsonValue: {3})", className, attributeName, key, jsonValue));
+            BaseAssign(className, attributeName, new object[] { key, jsonValue.FromJson<object>() });
         }
 
-        protected void baseAssign(string className, string attributeName, dynamic value)
+        protected void BaseAssign(string className, string attributeName, dynamic value)
         {
             dynamic naxObject = naxContainer.GetInstance(className);
             naxObject.GetType().InvokeMember(attributeName, BindingFlags.SetProperty, null, naxObject, value);
-            naxContainer.ThrowExceptionIfError(0);
+            naxContainer.ThrowExceptionIfError();
         }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         [OperationContract]
         public string TestVariosQuery()

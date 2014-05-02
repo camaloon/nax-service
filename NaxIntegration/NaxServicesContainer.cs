@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
-
-using System.Text;
-using System.Runtime.InteropServices;
-using Microsoft.Win32;
-
 using a3ERPActiveX;
 
 namespace NaxIntegration
@@ -16,20 +9,20 @@ namespace NaxIntegration
     /// </summary>
     public class NaxServicesContainer
     {
-        static string DB_NAME = "pruebabd";
+        protected static string PROG_ID_PREFIX = "a3ERPActiveX";
 
         Dictionary<string, dynamic> naxObjects = new Dictionary<string, dynamic>();
 
-        public NaxServicesContainer()
+        public NaxServicesContainer(string dbName)
         {
             Enlace naxEnlace = GetInstance("Enlace");
-            naxEnlace.Iniciar(DB_NAME);
-            ThrowExceptionIfError(1);
+            naxEnlace.Iniciar(dbName);
+            ThrowExceptionIfError();
         }
 
         public dynamic GetInstance(string className)
         {
-            string progId = "a3ERPActiveX." + className;
+            string progId = PROG_ID_PREFIX + "." + className;
             if (!naxObjects.ContainsKey(progId))
             {
                 naxObjects.Add(progId, Activator.CreateInstance(Type.GetTypeFromProgID(progId)));
@@ -37,12 +30,12 @@ namespace NaxIntegration
             return naxObjects[progId];
         }
 
-        public void ThrowExceptionIfError(UInt16 code)
+        public void ThrowExceptionIfError()
         {
             Enlace naxEnlace = GetInstance("Enlace");
             if (naxEnlace.bError)
             {
-                throw new ApplicationException(string.Format("[NAX_ERROR {0}: {1}]", code, naxEnlace.sMensaje));
+                throw new ApplicationException(string.Format("[NAX_ERROR: {0}]", naxEnlace.sMensaje));
             }
         }
     }

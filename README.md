@@ -57,18 +57,47 @@ Using Web Deploy Package
 - Ensure the IIS worker can access `C:\Program Files (x86)\A3` and its descendants:
   - This was tricky. One solution that worked was to ensure those files where accesible by the Admin user we had on the server (accesible via RDP) and setting the IIS worker to be run with that user. Not sure that is the best solution security wise though...
 
+#### Debug (development)
+
+- In the IIS Administration software
+  - Website configuration:
+    - Bindings:
+      - http, all ips, port 80
+      - https, all ips, port 443
+    - SSL settings
+      - Do not requiere SSL
+      - Ignore certificates
+
+#### Release (production)
+
+- In the IIS Administration software
+  - Website configuration:
+    - Bindings:
+      - https, all ips, port 443
+    - SSL settings
+      - DO requiere SSL
+
 ### Actual deployment:
 
+#### Debug (development) on a provisioned local environment like a VM
+Offers both HTTP and HTTPS access.
+
 - Right-click the web service project in VS
-- On the Connection step:
-  - Publish Method: Web Deploy Package
-  - Package location: your preference... `.zip` package will be saved here
-  - Site name: `nax_web_service`
-- Upload `.zip` file to server
+  - Publish: Debug profile
 - In the IIS Administration software
   - Import application package (`.zip`) to the new site. Make sure you leave the access route empty, so it doesn't appear in the URL.
+  - Restart the website
+  - Kill w3wp.exe if you have any problems
 
-
+#### Release (production)
+Only permits HTTPS access.
+- Right-click the web service project in VS
+  - Publish: Release profile
+    - Set the .zip package destination path in the Connection section
+- In the IIS Administration software
+  - Import application package (`.zip`) to the new site. Make sure you leave the access route empty, so it doesn't appear in the URL.
+  - Restart the website
+  - Kill w3wp.exe if you have any problems
 
 
 Resources
@@ -79,3 +108,5 @@ Resources
 - ASP.NET IIS Registration Tool (Aspnet_regiis.exe)
     - <http://msdn.microsoft.com/en-us/library/k6h9cz8h%28VS.80%29.aspx>
     - <http://stackoverflow.com/questions/4125264/whats-the-difference-between-aspnet-regiis-ir-and-aspnet-regiis-iru>
+
+
