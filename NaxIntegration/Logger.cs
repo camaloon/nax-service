@@ -16,7 +16,7 @@ namespace NaxIntegration
 
         public void Log(string message)
         {
-            string logLine = string.Format("[{0} | {1}]", DateTime.Now.ToString("yyyy\\/MM\\/dd h\\:mm tt"), message);
+            string logLine = string.Format("[{0} | {1}]", DateTime.Now.ToString("yyyy\\/MM\\/dd h\\:mm\\:ss tt"), message);
             System.IO.StreamWriter file = new System.IO.StreamWriter(logfilePath, true);
             file.WriteLine(logLine);
             file.Close();

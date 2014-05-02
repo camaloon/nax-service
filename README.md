@@ -1,3 +1,48 @@
+Consumming the service
+======================
+
+Ruby example
+------------
+
+```ruby
+require "savon";
+
+# Create the client
+client = Savon.client(
+    wsdl: "http://localhost/WebService.svc?wsdl",
+    namespace_identifier: nil,
+    raise_errors: false);
+
+# See available operations
+client.operations    # => [:execute, :assign, :collection_assign]
+
+# First call will create a session, and will return a cookie with the sid
+r = client.call(
+    :execute,
+    message: {
+        class_name: "Varios",
+        methodName: "CuentaArtV",
+        json_arguments: "[\"1\", \"1\"]"
+    }
+);
+
+# you can check r.success?, r.successful?, r.http_error(?) and r.soap_fault(?) now. Remote exceptions will be embeded in the response.
+
+# Next call should send the sid cookie in order to continue on the same session
+r = client.call(
+    :execute,
+    message: {
+        class_name: "Varios",
+        methodName: "CuentaArtV",
+        json_arguments: "[\"1\", \"1\"]"
+    },
+    cookies: r.http.cookies # This is the only difference from the call above
+);
+
+# Sessions time out is set in Web.config
+```
+
+
 Development
 ===========
 
@@ -59,23 +104,21 @@ Using Web Deploy Package
 
 #### Debug (development)
 
+**NOTE:** You can debug from VisualStudio through IIS Express (only local calls), but from the app (not running in the Windows machine) you need to test using the real IIS. Remember though that the WCF Test Tool doesn't support cookies, so if using IIS you need to use a tool that support those, like [SoapUI](http://www.soapui.org/).
+
 - In the IIS Administration software
   - Website configuration:
     - Bindings:
-      - http, all ips, port 80
-      - https, all ips, port 443
-    - SSL settings
-      - Do not requiere SSL
-      - Ignore certificates
+      - http, the ip oh the machine, all ips, port 80
 
 #### Release (production)
 
 - In the IIS Administration software
   - Website configuration:
     - Bindings:
-      - https, all ips, port 443
+      - https, the hostname of the machine, all ips, port 443
     - SSL settings
-      - DO requiere SSL
+      - Requiere SSL
 
 ### Actual deployment:
 
@@ -93,7 +136,7 @@ Offers both HTTP and HTTPS access.
 Only permits HTTPS access.
 - Right-click the web service project in VS
   - Publish: Release profile
-    - Set the .zip package destination path in the Connection section
+    - Set the `.zip` package destination path in the Connection section
 - In the IIS Administration software
   - Import application package (`.zip`) to the new site. Make sure you leave the access route empty, so it doesn't appear in the URL.
   - Restart the website
