@@ -68,6 +68,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Session.cs" />
+    <Compile Include="SessionContainer.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="NaxServicesContainer.cs" />
     <Compile Include="WebService.svc.cs">
@@ -133,7 +135,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>49828</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://localhost:44300/</IISUrl>
+          <IISUrl>http://localhost:49280/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
