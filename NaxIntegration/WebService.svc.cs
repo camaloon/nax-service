@@ -33,14 +33,14 @@ namespace NaxIntegration
         public void assign(string className, string attributeName, string jsonValue)
         {
             logger.Log(string.Format("CALL TO: assign(className: {0}, attributeName: {1}, jsonValue: {2})", className, attributeName, jsonValue));
-            BaseAssign(className, attributeName, jsonValue.FromJson<object>());
+            BaseAssign(className, attributeName, ParseJsonValue(jsonValue));
         }
 
         [OperationContract]
         public void collectionAssign(string className, string attributeName, string key, string jsonValue)
         {
             logger.Log(string.Format("CALL TO: assign(className: {0}, attributeName: {1}, key: {2}, jsonValue: {3})", className, attributeName, key, jsonValue));
-            BaseAssign(className, attributeName, new object[] { key, jsonValue.FromJson<object>() });
+            BaseAssign(className, attributeName, new object[] { key, ParseJsonValue(jsonValue) });
         }
 
         protected void BaseAssign(string className, string attributeName, dynamic value)
@@ -48,6 +48,12 @@ namespace NaxIntegration
             dynamic naxObject = naxContainer.GetInstance(className);
             naxObject.GetType().InvokeMember(attributeName, BindingFlags.SetProperty, null, naxObject, value);
             naxContainer.ThrowExceptionIfError();
+        }
+
+        protected dynamic ParseJsonValue(string jsonValue)
+        {
+            dynamic parsedValue = jsonValue.FromJson<dynamic>();
+            return parsedValue;
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
