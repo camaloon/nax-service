@@ -15,6 +15,7 @@ namespace NaxIntegration
     public class WebService
     {
         protected string SESSION_COOKIE_NAME = "sid";
+        protected string API_KEY_HEADER_NAME = "X-Camalize-Api-Key";
 
         protected SessionContainer sessionContainer = new SessionContainer();
         protected Logger logger = new Logger();
@@ -60,12 +61,23 @@ namespace NaxIntegration
 
         protected Session EnsureSession()
         {
+            CheckApiKey();
             Session session;
             string sessionId = GetCookie(SESSION_COOKIE_NAME);
             if (sessionId == null) session = sessionContainer.StartSession();
             else session = sessionContainer.GetSession(sessionId);
             SetCookie(SESSION_COOKIE_NAME, session.SessionId(), session.ExpiresAt());
             return session;
+        }
+
+        protected void CheckApiKey()
+        {
+            string apiKey = HttpContext.Current.Request.Headers[API_KEY_HEADER_NAME];
+            if (apiKey != ConfigurationManager.AppSettings.Get("WebService:apiKey"))
+            {
+                WebOperationContext.Current.OutgoingResponse.StatusCode = System.Net.HttpStatusCode.Unauthorized;
+                throw new FaultException("Unauthorized");
+            }
         }
 
         protected string GetCookie(string key)
