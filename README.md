@@ -21,7 +21,7 @@ r = client.call(
     :execute,
     message: {
         class_name: "Varios",
-        methodName: "CuentaArtV",
+        method_name: "CuentaArtV",
         json_arguments: "[\"1\", \"1\"]"
     }
 );
@@ -33,7 +33,7 @@ r = client.call(
     :execute,
     message: {
         class_name: "Varios",
-        methodName: "CuentaArtV",
+        method_name: "CuentaArtV",
         json_arguments: "[\"1\", \"1\"]"
     },
     cookies: r.http.cookies # This is the only difference from the call above
@@ -139,8 +139,25 @@ Only permits HTTPS access.
     - Set the `.zip` package destination path in the Connection section
 - In the IIS Administration software
   - Import application package (`.zip`) to the new site. Make sure you leave the access route empty, so it doesn't appear in the URL.
+  - Go to Application Settings on the site, and change `WebService:apiKey` to the key used in production.
   - Restart the website
   - Kill w3wp.exe if you have any problems
+
+
+Troubleshooting
+===============
+
+### Server not restarting
+Kill w3wp.exe if you have any problems.
+
+### Logging
+Logs are at `<SystemDrive>\ProgramData\nax_*`.
+
+- `nax_messages.svclog` contains all messages sent and received (except fault responses). This log happens at WCF transport level, before any parsing of the SOAP XML.
+- `nax_tracelog.svclog` contains unhandled exceptions.
+- `nax_log.log` is the application level log. It contains (parsed) web service calls, session creation/termination, etc.
+
+The XML logs with the `.svclog` extension can be opened with a viewer by doubleclicking. If they fail to open, the last XML message could be incomplete due to the server not having flushed the buffer. Try restarting the service.
 
 
 Resources
